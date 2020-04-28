@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -23,20 +24,18 @@ public class UIController : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    // Start is called before the first frame update
     private void Start()
     {
         ToggleRestartButton(false);
 
-        playerRef = FindObjectOfType<Player>();
+        scoreLabel.text = "0000";
 
-        if (playerRef != null && lifeImages.Length == Player.PLAYER_LIVES)
-        {
-            InvokeRepeating("UpdateUI", 0F, tickRate);
-        }
+        Player.instance.OnPlayerHit += UpdateLifeImages;
+        Player.instance.OnPlayerDied += Died;
+        Player.instance.OnPlayerChangeScore += UpdateLabel;
     }
 
-    private void ToggleRestartButton(bool val)
+    public void ToggleRestartButton(bool val)
     {
         if (restartBtn != null)
         {
@@ -44,22 +43,28 @@ public class UIController : MonoBehaviour
         }
     }
 
-    private void UpdateUI()
+    public void UpdateLabel(int val)
+    {
+        if (scoreLabel != null)
+        {
+            scoreLabel.text = Player.instance.Score.ToString();
+        }
+    }
+
+    public void UpdateLifeImages(int lives)
     {
         for (int i = 0; i < lifeImages.Length; i++)
         {
             if (lifeImages[i] != null && lifeImages[i].enabled)
             {
-                lifeImages[i].gameObject.SetActive(playerRef.Lives >= i + 1);
+                lifeImages[i].gameObject.SetActive(Player.instance.Lives >= i + 1);
             }
         }
+    }
 
-        if (scoreLabel != null)
-        {
-            scoreLabel.text = playerRef.Score.ToString();
-        }
-
-        if (playerRef.Lives <= 0)
+    private void Died()
+    {
+        if (Player.instance.Lives <= 0)
         {
             CancelInvoke();
 
